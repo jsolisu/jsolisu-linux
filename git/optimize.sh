@@ -8,10 +8,19 @@ for dir in $dirlist; do
 
         echo -e "\e[31m\e[1mOptimizando \e[33m$dir\e[0m..."
 
+        // sincronizar contra las ramas remotas
         git remote update origin --prune
-        git branch -vv | grep 'origin/.*: gone]' | awk '{print $1}' | xargs git branch -d
+        
+        // quita las ramas que ya no existen remotamente, siempre que se hayan fusionado
+        git branch -vv | grep 'origin/.*: gone]' | awk '{print $1}' | xargs git branch -D
+
+        // limpia el registro de referencias
         git reflog expire --all --expire=now
+
+        // ejecuta el garbage collector
         git gc --prune=now --aggressive
+
+        // quita los archivos que no estan bajo el control de versiones o que estan ignorados
         git clean -ffdx
     )
 done
