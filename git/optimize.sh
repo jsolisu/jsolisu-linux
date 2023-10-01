@@ -20,7 +20,7 @@ for dir in $dirlist; do
         // ejecuta el garbage collector
         git gc --prune=now --aggressive
 
-        // quita los archivos que no estan bajo el control de versiones o que estan ignorados
-        git clean -ffdx
+        // quita los archivos que no estan bajo el control de versiones
+        git clean -ffd
     )
 done
