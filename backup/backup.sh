@@ -20,4 +20,4 @@ rsync --progress -arlp /home/`whoami` /tmp/$1/personal_data
 cd /tmp
 tar -czvpf $1.tar.gz /tmp/$1
 
-rm -rf $1
+sudo rm -rf $1
