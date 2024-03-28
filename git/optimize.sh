@@ -21,6 +21,6 @@ for dir in $dirlist; do
         git gc --prune=now --aggressive
 
         # quita los archivos que no estan bajo el control de versiones
-        git clean -ffd
+        git clean -df
     )
 done
