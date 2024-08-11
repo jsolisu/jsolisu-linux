@@ -6,14 +6,14 @@ cleanup_deleted_branches() {
     default_local_branch=$(git remote show origin | awk '/HEAD branch:/ {print $NF}')
 
     if [[ -n "$branches_to_delete" ]]; then
-        if echo "$branches_to_delete" | grep -q "^$current_branch\$"; then
+        if echo "$branches_to_delete" | grep -q -e "^$current_branch\$" -e "^\*$"; then
             echo "La rama actual ($current_branch) está en la lista de ramas para eliminar."
 
             if [[ "$current_branch" == "$default_local_branch" ]]; then
                 echo "La rama actual es la rama por defecto local. Actualizando HEAD del remoto."
 
                 git remote set-head origin --auto
-                default_local_branch=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's#refs/remotes/origin/##')
+                default_local_branch=$(git remote show origin | awk '/HEAD branch:/ {print $NF}')
 
                 if [[ -n "$default_local_branch" ]]; then
                     echo "Cambiando a la nueva rama por defecto local: $default_local_branch"
