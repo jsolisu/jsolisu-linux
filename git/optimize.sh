@@ -1,6 +1,8 @@
 #!/bin/bash
 
 cleanup_deleted_branches() {
+    local current_branch default_local_branch branches_to_delete
+
     current_branch=$(git symbolic-ref --short HEAD)
     branches_to_delete=$(git branch -vv | awk '/origin\/.*: gone]/ {print $1}')
     default_local_branch=$(git remote show origin | awk '/HEAD branch:/ {print $NF}')
@@ -11,17 +13,13 @@ cleanup_deleted_branches() {
 
             if [[ "$current_branch" == "$default_local_branch" ]]; then
                 echo "La rama actual es la rama por defecto local. Actualizando HEAD del remoto."
-
                 git remote set-head origin --auto
                 default_local_branch=$(git remote show origin | awk '/HEAD branch:/ {print $NF}')
 
                 if [[ -n "$default_local_branch" ]]; then
                     echo "Cambiando a la nueva rama por defecto local: $default_local_branch"
-                    git checkout $default_local_branch
-
-                    git branch -D $current_branch
-
-                    branches_to_delete=$(git branch -vv | awk '/origin\/.*: gone]/ {print $1}')
+                    git checkout "$default_local_branch"
+                    git branch -D "$current_branch"
                 else
                     echo "No se pudo determinar la nueva rama por defecto local."
                     return 1
@@ -31,19 +29,17 @@ cleanup_deleted_branches() {
 
                 if [[ -n "$default_local_branch" ]]; then
                     echo "Cambiando a la rama por defecto local: $default_local_branch"
-                    git checkout $default_local_branch
+                    git checkout "$default_local_branch"
+                    git branch -D "$current_branch"
                 else
                     echo "No se pudo determinar la rama por defecto local."
                     return 1
                 fi
-
-                git branch -D $current_branch
-
-                branches_to_delete=$(git branch -vv | awk '/origin\/.*: gone]/ {print $1}')
             fi
+
+            branches_to_delete=$(git branch -vv | awk '/origin\/.*: gone]/ {print $1}')
         fi
 
-        # Elimina las ramas locales que han sido eliminadas en el remoto
         if [[ -n "$branches_to_delete" ]]; then
             echo "Eliminando ramas locales que han sido eliminadas en el remoto:"
             echo "$branches_to_delete" | xargs -r git branch -D
@@ -65,25 +61,30 @@ find . -type d -name '.git' -exec dirname {} \; | while IFS= read -r dir; do
 
         echo -e "\e[31m\e[1mOptimizando \e[33m[$dir]\e[0m..."
 
-        # Sincroniza las referencias locales con la información de del repositorio remoto
         echo -e "\e[32m\e[1mSincronizando ramas remotas\e[0m..."
-        git remote update origin --prune
+        URL=$(git remote get-url origin)
+        if git ls-remote $URL &>/dev/null; then
+            # Sincroniza las referencias locales con la información del repositorio remoto
+            git remote update origin --prune
 
-        # Elimina las ramas que ya no existen remotamente
-        echo -e "\e[32m\e[1mQuitando ramas que ya no existen remotamente\e[0m..."
-        cleanup_deleted_branches
+            # Elimina las ramas que ya no existen remotamente
+            echo -e "\e[32m\e[1mQuitando ramas que ya no existen remotamente\e[0m..."
+            cleanup_deleted_branches
 
-        # Limpia el registro de referencias
-        echo -e "\e[32m\e[1mLimpiando referencias\e[0m..."
-        git reflog expire --all --expire=now
+            # Limpia el registro de referencias
+            echo -e "\e[32m\e[1mLimpiando referencias\e[0m..."
+            git reflog expire --all --expire=now
 
-        # Ejecuta el garbage collector
-        echo -e "\e[32m\e[1mRecolectando basura\e[0m..."
-        git gc --prune=now --aggressive
+            # Ejecuta el garbage collector
+            echo -e "\e[32m\e[1mRecolectando basura\e[0m..."
+            git gc --prune=now --aggressive
 
-        # Elimina archivos que no están bajo el control de versiones
-        echo -e "\e[32m\e[1mQuitando archivos fuera del control de versiones\e[0m..."
-        git clean -df
+            # Elimina archivos que no están bajo el control de versiones
+            echo -e "\e[32m\e[1mQuitando archivos fuera del control de versiones\e[0m..."
+            git clean -df
+        else
+            echo "[$dir] no es un repositorio válido."
+        fi
 
         # Regresa al directorio original
         cd - >/dev/null || {
@@ -91,6 +92,8 @@ find . -type d -name '.git' -exec dirname {} \; | while IFS= read -r dir; do
             exit 1
         }
     else
-        echo "El directorio $dir no existe o no se puede acceder."
+        echo "El directorio [$dir] no existe o no se puede acceder."
     fi
 done
+
+echo -e "\e[32m\e[1mOptimización terminada.\e[0m"
