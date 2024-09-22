@@ -46,7 +46,7 @@ while :; do
         
         # Clonar solamente si el directorio $name no existe
         if [ ! -d "$name" ]; then
-            echo "Clonando $name from $url"
+            echo "Clonando $name desde $url"
             git clone "$url"
         else
             echo "El directorio $name ya existe"
