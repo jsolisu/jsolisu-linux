@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Si no se proporciona el token de autenticación de GitHub, mostrar un mensaje de error
+if [ -z "$1" ]; then
+    echo "Por favor, proporcione el token de autenticación de GitHub como argumento"
+    exit 1
+fi
+
 # El token de autenticación de GitHub se pasa como argumento y debe tener scope "repo"
 token=$1
 
@@ -42,6 +48,8 @@ while :; do
         if [ ! -d "$name" ]; then
             echo "Clonando $name from $url"
             git clone "$url"
+        else
+            echo "El directorio $name ya existe"
         fi
     done
 
