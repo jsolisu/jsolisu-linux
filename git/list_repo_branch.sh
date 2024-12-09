@@ -1,7 +1,6 @@
 #!/bin/bash
   
-echo "===== Listar los directorios que tienen un repositorio Git ubicado en el branch indicado ====="
-echo ""
+echo -e "===== Listar los directorios que tienen un repositorio Git ubicado en el branch indicado =====\n"
 
 # Verifica si se proporcionó un nombre de rama
 if [ -z "$1" ]; then
@@ -31,7 +30,7 @@ done
 
 # Muestra un mensaje si no se encontró ningún repositorio en la rama especificada
 if [ "$found" = false ]; then
-  echo "No se encontró ningún repositorio en la rama [$branch]"
+  echo -e "No se encontró ningún repositorio en la rama [$branch]\n"
 else
-  echo ">>>>> Fin de la lista <<<<<"
+  echo -e ">>>>> Fin de la lista <<<<<\n"
 fi
