@@ -1,5 +1,5 @@
 #!/bin/bash
-  
+
 echo -e "===== Listar los directorios que tienen un repositorio Git ubicado en el branch indicado =====\n"
 
 # Verifica si se proporcionó un nombre de rama
@@ -11,20 +11,13 @@ fi
 branch=$1
 found=false
 
-# Recorre todos los directorios en el directorio actual
-for dir in */; do
-  # Verifica si el directorio contiene un repositorio Git
-  if [ -d "$dir/.git" ]; then
-    # Cambia al directorio
-    cd "$dir"
-    # Verifica si el repositorio está en la rama especificada
-    if [ "$(git rev-parse --abbrev-ref HEAD)" == "$branch" ]; then
-      # Imprime el nombre del directorio sin la diagonal al final
-      echo "${dir%/}"
-      found=true
-    fi
-    # Regresa al directorio anterior
-    cd ..
+# Encuentra todos los directorios que contienen un repositorio Git
+for dir in $(find . -type d -name .git | sed 's|/\.git||'); do
+  # Verifica si el repositorio está en la rama especificada
+  if [ "$(git -C "$dir" rev-parse --abbrev-ref HEAD)" == "$branch" ]; then
+    # Imprime el nombre del directorio sin la diagonal al final
+    echo "${dir#./}"
+    found=true
   fi
 done
 
