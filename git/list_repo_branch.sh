@@ -10,20 +10,27 @@ fi
 
 branch=$1
 found=false
+dirs=()
 
 # Encuentra todos los directorios que contienen un repositorio Git
 for dir in $(find . -type d -name .git | sed 's|/\.git||'); do
   # Verifica si el repositorio está en la rama especificada
   if [ "$(git -C "$dir" rev-parse --abbrev-ref HEAD)" == "$branch" ]; then
-    # Imprime el nombre del directorio sin la diagonal al final
-    echo "${dir#./}"
+    dirs+=("${dir#./}")
     found=true
   fi
 done
 
-# Muestra un mensaje si no se encontró ningún repositorio en la rama especificada
+# Ordena y muestra los directorios
 if [ "$found" = false ]; then
   echo -e "No se encontró ningún repositorio en la rama [$branch]\n"
 else
-  echo -e ">>>>> Fin de la lista <<<<<\n"
+  IFS=$'\n' sorted_dirs=($(sort <<<"${dirs[*]}"))
+  unset IFS
+
+  echo -e ">>>>> Lista de directorios con repositorios en la rama [$branch] <<<<<\n"
+  for dir in "${sorted_dirs[@]}"; do
+    echo "$dir"
+  done
+  echo -e "\n>>>>> Fin de la lista <<<<<\n"
 fi
